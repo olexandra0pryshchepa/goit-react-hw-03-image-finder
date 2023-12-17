@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
-import { API_KEY } from 'Api';
-import axios from 'axios';
-
-
+import { fetchImages } from 'Api';
 import { Loader } from './Loader/Loader';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Modal } from './Modal/Modal';
 import { Button } from './Button/Button';
+
 
 export class App extends Component {
   state = {
@@ -18,6 +16,7 @@ export class App extends Component {
     searchQuery: '',
     isOpenModal: false,
     modalImage: null,
+    totalHits: 0,
   };
   async componentDidUpdate(prevProps, prevState) {
     if (
@@ -28,14 +27,19 @@ export class App extends Component {
         this.setState({
           isLoading: true,
         });
-        const { data } = await axios.get(
-          `https://pixabay.com/api/?q=${this.state.searchQuery}&page=${this.state.currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+        const { totalHits, hits } = await fetchImages(
+          this.state.searchQuery,
+          this.state.currentPage
         );
-
-        this.setState({
-          images: [...prevState.images, ...data.hits],
-          currentPage: prevState.currentPage + 1,
+        this.setState(prevState => {
+          return {
+            images: [...prevState.images, ...hits],
+            totalHits: totalHits,
+          };
         });
+       
+
+        
       } catch (error) {
         console.error('Error fetching images: ', error);
       } finally {
@@ -69,21 +73,33 @@ export class App extends Component {
     });
   };
 
+
+  
   render() {
+    const {
+      images,
+      isLoading,
+      isOpenModal,
+      modalImage,
+      totalHits,
+      currentPage,
+    } = this.state;
+    const showBtn = Math.ceil(totalHits / 12) > currentPage;
+
     return (
       <div>
         <Searchbar onSubmit={this.handleSearchSubmit} />
-        <ImageGallery images={this.state.images} openModal={this.openModal} />
-        {this.state.isLoading && <Loader />}
-        {this.state.images.length > 0 && <Button onClick={this.loadMore} />}
-        {this.state.isOpenModal && (
+        <ImageGallery images={images} openModal={this.openModal} />
+        {isLoading && <Loader />}
+        {images.length > 0 && showBtn && <Button onClick={this.loadMore} />}
+        {isOpenModal && (
           <Modal
-            isOpen={this.state.isOpenModal}
-            img={this.state.modalImage}
+            isOpen={isOpenModal}
+            img={modalImage}
             onClose={this.closeModal}
           />
         )}
       </div>
     );
   }
-}
+};
