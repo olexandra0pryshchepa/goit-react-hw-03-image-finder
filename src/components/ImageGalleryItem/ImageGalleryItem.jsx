@@ -1,12 +1,8 @@
 import './ImageGalleryItem.css'
 
-export const ImageGalleryItem = ({ images, openModal }) => {
-  
-  if (!Array.isArray(images) || images.length === 0) {
-    return null; 
-  }
+export const ImageGalleryItem = ({ image, openModal }) => {
 
-  return images.map(image => (
+  return (
     <li className="imageGalleryItem" key={image.id}>
       <img
         className="imageGalleryItemImage"
@@ -15,5 +11,5 @@ export const ImageGalleryItem = ({ images, openModal }) => {
         onClick={() => openModal(image.largeImageURL)}
       />
     </li>
-  ));
+  );
 };

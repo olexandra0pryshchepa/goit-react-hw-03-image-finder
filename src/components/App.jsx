@@ -12,24 +12,26 @@ export class App extends Component {
     currentPage: 1,
     images: [],
     isLoading: false,
-    error: null,
+    error: '',
     searchQuery: '',
     isOpenModal: false,
     modalImage: null,
     totalHits: 0,
   };
   async componentDidUpdate(prevProps, prevState) {
+    const { searchQuery, currentPage } = this.state;
     if (
-      prevState.searchQuery !== this.state.searchQuery ||
-      prevState.currentPage !== this.state.currentPage
+      prevState.searchQuery !== searchQuery ||
+      prevState.currentPage !== currentPage
     ) {
       try {
         this.setState({
           isLoading: true,
+          error: "",
         });
         const { totalHits, hits } = await fetchImages(
-          this.state.searchQuery,
-          this.state.currentPage
+          searchQuery,
+          currentPage
         );
         this.setState(prevState => {
           return {
@@ -41,6 +43,9 @@ export class App extends Component {
 
         
       } catch (error) {
+        this.setState({
+          error: "Error fetching images: ",
+        });
         console.error('Error fetching images: ', error);
       } finally {
         this.setState({
@@ -50,7 +55,7 @@ export class App extends Component {
     }
   }
   handleSearchSubmit = query => {
-    this.setState({ searchQuery: query });
+    this.setState({ searchQuery: query, images: [], currentPage: 1 });
   };
 
   loadMore = () => {
